@@ -13,7 +13,7 @@
 1. **수집** — 머릿속 생각을 자유롭게 쏟아냅니다
 2. **탐색** — 소크라테스식 질문으로 본질에 접근합니다
 3. **결정화** — 내면 상태를 하나의 진단으로 응축합니다
-4. **저장** — Obsidian 호환 마크다운으로 기록됩니다
+4. **저장** — 마크다운으로 기록됩니다 (Obsidian 연동 가능)
 
 ## Install
 
@@ -84,6 +84,8 @@ rm -rf ~/.inner-compass/
 
 - [Claude Code](https://docs.anthropic.com/en/docs/claude-code) CLI
 - Claude Max subscription
+
+**Optional:** [Obsidian](https://obsidian.md/) — 세션 결과를 vault에 직접 저장하여 그래프 뷰, 백링크, 검색 등을 활용할 수 있습니다. `/reflect-setup`에서 vault 경로를 설정하면 됩니다.
 
 ## Inspired by
 
