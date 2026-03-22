@@ -10,7 +10,7 @@
   "plugins": [
     {
       "name": "inner-compass",
-      "source": ".",
+      "source": "./",
       "description": "Structured self-reflection through Socratic questioning — collect thoughts, explore roots, crystallize inner state",
       "version": "1.0.0",
       "author": {
