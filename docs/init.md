@@ -96,7 +96,8 @@ oh-my-claudecode(https://github.com/yeachan-heo/oh-my-claudecode)의 agent orche
 ├── config.md                         # 설정 (vault 경로 등)
 ├── sessions/                         # 개별 세션 결과
 │   └── (YYYY-MM-DD-HHmm.md)
-└── patterns.md                       # 누적 패턴 기록
+├── roots.md                          # 뿌리 레지스트리 (패턴 누적)
+└── patterns.md                       # (deprecated, roots.md로 대체)
 ```
 
 Obsidian vault를 설정한 경우:
@@ -105,7 +106,7 @@ Obsidian vault를 설정한 경우:
 └── Inner-Compass/                    # vault 내 저장 디렉토리
     ├── sessions/
     │   └── (YYYY-MM-DD-HHmm.md)
-    └── patterns.md
+    └── roots.md
 ```
 
 ### 2.3 설정 파일 (`~/.inner-compass/config.md`)
@@ -779,6 +780,7 @@ Obsidian에서 열어볼 수 있는 형태인지도.
     ┌─────────────────────────────┐
     │ inner-compass-crystallizer   │  종합 진단 생성 → 마크다운 파일 저장
     │ (opus)                       │  세션 저장 경로/YYYY-MM-DD-HHmm.md
+    │                              │  + roots.md 갱신
     └─────────────────────────────┘
 ```
 
@@ -842,17 +844,19 @@ A: ...
 
 ## 10. 향후 확장
 
-### v0.2
-- [ ] patterns.md 자동 누적 로직 강화
+### v0.2 (구현 완료)
+- [x] roots.md 뿌리 레지스트리로 patterns.md 대체
+- [x] 매 세션 자동 context 로드 (roots.md + 최근 세션)
+- [x] 과거 세션 기반 질문 개인화 (socratic 에이전트가 roots.md 참조)
 - [ ] /reflect-review의 시계열 시각화 (텍스트 기반)
-- [ ] 과거 세션 기반 질문 개인화 (socratic 에이전트가 patterns.md 참조)
 
 ### v0.3
 - [ ] 에너지 분배 시계열 추적
 - [ ] drift detection (세션 중 주제 이탈 감지)
 - [ ] Obsidian Daily Note 연동 (당일 세션을 데일리 노트에 링크)
 
-### v0.4 (범용화)
+### v0.4 (3-layer memory + 범용화)
+- [ ] Approach C: recent.md + roots.md + growth.md 3-layer 구조로 확장
 - [ ] `~/.claude/` → `~/.agents/` 미러링으로 OpenCode/Cursor 호환
 - [ ] 설치 스크립트 (curl one-liner 또는 npx)
 - [ ] 도메인 특화 스킬팩 (커리어 전환, 투자 판단, 사업 운영 등)
