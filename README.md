@@ -19,10 +19,12 @@
 
 ### Plugin (추천)
 
-Claude Code 세션에서:
+Claude Code 세션에서 **한 줄씩** 실행하세요:
 
 ```
 /plugin marketplace add d0lim/inner-compass
+```
+```
 /plugin install inner-compass
 ```
 
