@@ -1,0 +1,13 @@
+# Inner Compass session data (personal)
+.inner-compass/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editors
+*.swp
+*.swo
+*~
+.idea/
+.vscode/
