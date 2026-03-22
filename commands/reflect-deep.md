@@ -19,4 +19,13 @@
    - roots.md 내용 함께 전달, 모드: deep
    - 표준 진단에 추가로: 시간축 분석(과거→현재→미래), 가치관 충돌 맵
    - 궤적 섹션: 전체 + 시간축 분석 포함
-4. 세션 저장 경로의 `YYYY-MM-DD-HHmm-deep.md`에 저장
+   - crystallizer가 결과와 뿌리 매칭 분석을 반환 (파일 저장 안 함)
+4. 리뷰 분기 (/reflect와 동일한 구조)
+   - 결정화 결과를 사용자에게 보여주고 선택지 제시
+   - (1) 괜찮아요 → 저장, (2) 수정 → crystallizer 수정 모드, (3) 새 생각 → socratic 2차 탐색 (5+라운드)
+   - 수정/탐색 후 다시 리뷰 분기로 반복
+5. 저장 및 완료
+   - 세션 저장 경로의 `YYYY-MM-DD-HHmm-deep.md`에 저장
+   - 수정 발생 시 frontmatter에 revised, revision_count, revision_history 추가
+   - roots.md 갱신 (최종 결과 기준으로 한 번만)
+   - 저장 완료 안내
