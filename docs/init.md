@@ -23,7 +23,11 @@ oh-my-claudecode(https://github.com/yeachan-heo/oh-my-claudecode)의 agent orche
 ### 1.2 사용 시나리오
 
 ```
-# 어디서든 Claude Code 실행 중 (글로벌 설치)
+# 설치 (Claude Code 세션에서)
+> /plugin marketplace add d0lim/inner-compass
+> /plugin install inner-compass
+
+# 어디서든 Claude Code 실행 중
 > /reflect
 
 # 또는 첫 생각과 함께
@@ -35,7 +39,7 @@ oh-my-claudecode(https://github.com/yeachan-heo/oh-my-claudecode)의 agent orche
 # 과거 세션 회고
 > /reflect-review
 
-# 최초 1회: 설치 및 설정
+# 최초 1회: Obsidian vault 설정 (선택)
 > /reflect-setup
 ```
 
@@ -48,44 +52,69 @@ oh-my-claudecode(https://github.com/yeachan-heo/oh-my-claudecode)의 agent orche
 - 추가 비용 없음 (Claude Max 구독 내)
 - slash command, agent, skill 등 Claude Code 네이티브 기능 활용
 
-### 1.4 설치 제약사항
+### 1.4 설치 방법
 
-- **실행 위치 제약 없음**: `~/.claude/`에 글로벌 설치되므로 어디서든 사용 가능
+**Plugin (추천):**
+```
+/plugin marketplace add d0lim/inner-compass
+/plugin install inner-compass
+```
+
+**Manual:**
+```bash
+git clone https://github.com/d0lim/inner-compass.git
+cd inner-compass && ./install.sh
+```
+
+### 1.5 제약사항
+
+- **실행 위치 제약 없음**: 플러그인으로 설치되므로 어디서든 사용 가능
 - **필요 조건**: Claude Code CLI 설치, Claude Max 구독
-- **초기 설정**: `/reflect-setup` 1회 실행 (Obsidian vault 경로 설정 등)
+- **초기 설정**: `/reflect-setup` 1회 실행 (Obsidian vault 경로 설정, 선택사항)
 
 ---
 
 ## 2. 디렉토리 구조
 
-### 2.1 글로벌 설치 경로 (`~/.claude/`)
+### 2.1 플러그인 소스 구조 (리포지토리)
 
 ```
-~/.claude/                            # Claude Code 글로벌 설정
+inner-compass/                        # 프로젝트 루트
 │
-├── commands/                         # Slash commands (글로벌)
+├── .claude-plugin/
+│   ├── plugin.json                   # 플러그인 메타데이터
+│   └── marketplace.json              # 자체 마켓플레이스 정의
+│
+├── commands/                         # Slash commands
 │   ├── reflect.md                    # /reflect — 표준 세션
 │   ├── reflect-quick.md              # /reflect-quick — 간이 모드
 │   ├── reflect-deep.md               # /reflect-deep — 심층 모드
 │   ├── reflect-review.md             # /reflect-review — 과거 회고
 │   └── reflect-setup.md              # /reflect-setup — 초기 설정
 │
-├── agents/                           # Subagents (글로벌)
+├── agents/                           # Subagents
 │   ├── inner-compass-collector.md    # 생각 수집
 │   ├── inner-compass-socratic.md     # 소크라테스식 질문
 │   ├── inner-compass-crystallizer.md # 상태 결정화
 │   └── inner-compass-retrospective.md # 과거 세션 회고
 │
-└── skills/                           # Auto-activating skills (글로벌)
-    ├── inner-compass-pattern-detect/
-    │   └── SKILL.md
-    ├── inner-compass-ontological-analysis/
-    │   └── SKILL.md
-    └── inner-compass-obsidian-export/
-        └── SKILL.md
+├── skills/                           # Auto-activating skills
+│   ├── inner-compass-pattern-detect/
+│   │   └── SKILL.md
+│   ├── inner-compass-ontological-analysis/
+│   │   └── SKILL.md
+│   └── inner-compass-obsidian-export/
+│       └── SKILL.md
+│
+├── install.sh                        # manual 설치용
+├── uninstall.sh
+└── docs/
 ```
 
-> **네이밍 규칙**: 글로벌 설치이므로 다른 플러그인과의 충돌 방지를 위해
+> **배포 방식**: Claude Code 플러그인 시스템을 통해 배포.
+> `/plugin marketplace add d0lim/inner-compass` → `/plugin install inner-compass`
+>
+> **네이밍 규칙**: 다른 플러그인과의 충돌 방지를 위해
 > agent와 skill 파일명에 `inner-compass-` 접두사를 붙인다.
 > command는 사용자가 직접 입력하므로 `reflect-` 접두사로 충분하다.
 
@@ -122,11 +151,13 @@ obsidian_vault: ~               # 비어있으면 기본 경로 사용
 - 설정되지 않은 경우: `~/.inner-compass/sessions/`에 저장
 - `/reflect-setup`이 이 파일을 생성/수정
 
-### 2.4 Claude Code 디렉토리 규칙
+### 2.4 Claude Code 플러그인 규칙
 
-- `~/.claude/commands/` — 글로벌 slash command. 파일명이 커맨드명이 됨 (`reflect.md` → `/reflect`)
-- `~/.claude/agents/` — 글로벌 subagent. `Task()` tool로 위임 시 사용
-- `~/.claude/skills/` — 디렉토리명이 skill명. 내부에 `SKILL.md` 필수
+- `commands/` — slash command 정의. 파일명이 커맨드명이 됨 (`reflect.md` → `/reflect`)
+- `agents/` — subagent 정의. `Task()` tool로 위임 시 사용
+- `skills/` — 디렉토리명이 skill명. 내부에 `SKILL.md` 필수
+- `.claude-plugin/plugin.json` — 플러그인 메타데이터 (name, version, description 등)
+- `.claude-plugin/marketplace.json` — 자체 마켓플레이스 정의
 
 ---
 
@@ -690,66 +721,30 @@ deep 모드: `YYYY-MM-DD-HHmm-deep.md`
 
 ---
 
-## 7. 구현 순서 (Claude Code 세션용)
+## 7. 설치 및 테스트
 
-아래 순서로 Claude Code에게 요청하면 된다.
-
-### Step 1: 글로벌 디렉토리 생성
+### 플러그인 설치
 ```
-다음 디렉토리 구조를 생성해줘:
-~/.claude/commands/
-~/.claude/agents/
-~/.claude/skills/inner-compass-pattern-detect/
-~/.claude/skills/inner-compass-ontological-analysis/
-~/.claude/skills/inner-compass-obsidian-export/
-~/.inner-compass/sessions/
+/plugin marketplace add d0lim/inner-compass
+/plugin install inner-compass
 ```
 
-### Step 2: Setup 커맨드 생성
-```
-이 가이드 문서의 섹션 3을 참고해서 ~/.claude/commands/reflect-setup.md를 생성해줘.
-```
-
-### Step 3: Agent 파일 생성
-```
-이 가이드 문서의 섹션 5를 참고해서 다음 파일들을 생성해줘:
-- ~/.claude/agents/inner-compass-collector.md
-- ~/.claude/agents/inner-compass-socratic.md
-- ~/.claude/agents/inner-compass-crystallizer.md
-- ~/.claude/agents/inner-compass-retrospective.md
+### Manual 설치 (개발용)
+```bash
+git clone https://github.com/d0lim/inner-compass.git
+cd inner-compass && ./install.sh
 ```
 
-### Step 4: Command 파일 생성
+### 테스트
 ```
-이 가이드 문서의 섹션 4를 참고해서 다음 파일들을 생성해줘:
-- ~/.claude/commands/reflect.md
-- ~/.claude/commands/reflect-quick.md
-- ~/.claude/commands/reflect-deep.md
-- ~/.claude/commands/reflect-review.md
-```
+# 초기 설정
+/reflect-setup
 
-### Step 5: Skill 파일 생성
-```
-이 가이드 문서의 섹션 6을 참고해서 다음 파일들을 생성해줘:
-- ~/.claude/skills/inner-compass-pattern-detect/SKILL.md
-- ~/.claude/skills/inner-compass-ontological-analysis/SKILL.md
-- ~/.claude/skills/inner-compass-obsidian-export/SKILL.md
-```
+# 탐색 테스트
+/reflect 요즘 여러 생각이 산발적으로 많이 든다
 
-### Step 6: 초기 설정 테스트
-```
-/reflect-setup 실행해보자.
-```
-
-### Step 7: 탐색 테스트
-```
-/reflect 테스트해보자. "요즘 여러 생각이 산발적으로 많이 든다"로 시작.
-```
-
-### Step 8: 검증
-```
-세션 저장 경로에 결과가 제대로 저장되었는지 확인해줘.
-Obsidian에서 열어볼 수 있는 형태인지도.
+# 저장 확인
+세션 저장 경로에 결과가 제대로 저장되었는지, Obsidian에서 열 수 있는 형태인지 확인
 ```
 
 ---
@@ -858,5 +853,5 @@ A: ...
 ### v0.4 (3-layer memory + 범용화)
 - [ ] Approach C: recent.md + roots.md + growth.md 3-layer 구조로 확장
 - [ ] `~/.claude/` → `~/.agents/` 미러링으로 OpenCode/Cursor 호환
-- [ ] 설치 스크립트 (curl one-liner 또는 npx)
+- [x] Claude Code 플러그인 시스템으로 배포
 - [ ] 도메인 특화 스킬팩 (커리어 전환, 투자 판단, 사업 운영 등)
