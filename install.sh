@@ -7,14 +7,14 @@ echo "Installing Inner Compass..."
 
 # Commands
 mkdir -p ~/.claude/commands
-cp "$SCRIPT_DIR"/src/commands/reflect*.md ~/.claude/commands/
+cp "$SCRIPT_DIR"/commands/reflect*.md ~/.claude/commands/
 
 # Agents
 mkdir -p ~/.claude/agents
-cp "$SCRIPT_DIR"/src/agents/inner-compass-*.md ~/.claude/agents/
+cp "$SCRIPT_DIR"/agents/inner-compass-*.md ~/.claude/agents/
 
 # Skills
-for skill_dir in "$SCRIPT_DIR"/src/skills/inner-compass-*/; do
+for skill_dir in "$SCRIPT_DIR"/skills/inner-compass-*/; do
   skill_name=$(basename "$skill_dir")
   mkdir -p ~/.claude/skills/"$skill_name"
   cp "$skill_dir"SKILL.md ~/.claude/skills/"$skill_name"/

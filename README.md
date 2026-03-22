@@ -17,13 +17,24 @@
 
 ## Install
 
+### Plugin (추천)
+
+Claude Code 세션에서:
+
+```
+/plugin marketplace add d0lim/inner-compass
+/plugin install inner-compass
+```
+
+### Manual
+
 ```bash
 git clone https://github.com/d0lim/inner-compass.git
 cd inner-compass
 ./install.sh
 ```
 
-설치 후 Claude Code에서:
+### 설치 후
 
 ```
 /reflect-setup    # Obsidian vault 경로 설정 (선택)
@@ -70,6 +81,12 @@ cd inner-compass
 
 ## Uninstall
 
+Plugin으로 설치한 경우:
+```
+/plugin remove inner-compass
+```
+
+Manual로 설치한 경우:
 ```bash
 ./uninstall.sh
 ```

@@ -1,0 +1,13 @@
+{
+  "name": "inner-compass",
+  "version": "1.0.0",
+  "description": "Structured self-reflection through Socratic questioning — collect thoughts, explore roots, crystallize inner state",
+  "author": {
+    "name": "d0lim",
+    "url": "https://github.com/d0lim"
+  },
+  "homepage": "https://github.com/d0lim/inner-compass",
+  "repository": "https://github.com/d0lim/inner-compass",
+  "license": "MIT",
+  "keywords": ["reflection", "self-awareness", "socratic", "journaling", "obsidian"]
+}
