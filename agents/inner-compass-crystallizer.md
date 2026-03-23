@@ -10,7 +10,9 @@ tools: Read, Edit, Bash
 
 ## 입력
 - 원본 생각 조각 목록
-- inner-compass-socratic 에이전트와의 전체 대화 기록
+- 렌즈 에이전트(inner-compass-lens-{name})와의 전체 대화 기록
+- 렌즈: {사용된 렌즈 이름} (예: socratic, camus)
+- perspectives/{lens}.md 내용 (해당 렌즈의 기존 해석, 없으면 빈 상태)
 - 세션 저장 경로 (config에서 전달됨)
 - 모드: standard | quick | deep
 - roots.md 내용 (없으면 빈 상태)
@@ -77,13 +79,15 @@ tools: Read, Edit, Bash
 Obsidian callout `> [!timeline]` 형식으로 출력합니다.
 
 포함 항목:
-- **반복 중**: 기존 뿌리와 매칭된 경우. 등장 횟수, 표면 변형의 시간순 변화, 추이
+- **반복 중**: 기존 뿌리와 매칭된 경우. 등장 횟수, 표면 변형의 시간순 변화, 추이 (perspectives/{lens}.md에서 가져옴)
 - **새로 감지**: 이번 세션에서 처음 감지된 뿌리
 - **지난 나침반 점검**: 이전 세션의 "다음 한 걸음"에 대한 점검 (최근 세션이 전달된 경우)
 
 배치 순서: 에너지 분배 → **궤적** → 나침반 → 비유
 
 첫 세션(roots.md 없음)이면 궤적 섹션은 생략합니다.
+
+perspectives/{lens}.md가 입력에 포함된 경우, 해당 렌즈의 추이를 궤적에 표시합니다.
 
 모드별 차이:
 - standard: 전체 궤적
@@ -101,6 +105,7 @@ date: YYYY-MM-DDTHH:MM
 state: "(상태 명명)"
 tags: [주제1, 주제2, 주제3]
 mode: standard | quick | deep
+lens: {렌즈명}
 thought_count: N
 question_rounds: N
 matched_roots: []
@@ -161,7 +166,8 @@ roots.md 파일 갱신은 수행하지 않습니다 — 호출한 커맨드가 �
    - 애매하면 → ambiguous
 3. 해소됨 판단: 사용자가 "이건 이제 괜찮아" 류 언급 시 → resolved
 
-### 추이 판단 가이드라인
+### 추이 판단 가이드라인 (perspective_update용)
+이 추이는 렌즈별 perspective에 기록됩니다. roots.md에는 기록하지 않습니다.
 - 표면이 더 강렬해짐 → 악화
 - 비슷한 강도로 반복 → 유지
 - 표면이 약해지거나 구체적 해결 시도 언급 → 개선
@@ -171,7 +177,15 @@ roots.md 파일 갱신은 수행하지 않습니다 — 호출한 커맨드가 �
 결정화 결과 마크다운 끝에 다음 형식으로 매칭 분석을 추가합니다:
 
 [roots_update]
-- matched: [{뿌리명, 추가할 표면 변형, 갱신할 추이, 증가할 등장 횟수}]
-- new: [{뿌리명, 표면 변형 리스트, 추이: "관찰 중"}]
+- matched: [{뿌리명, 추가할 표면 변형, 증가할 등장 횟수}]
+- new: [{뿌리명, 표면 변형 리스트}]
 - ambiguous: [{뿌리명, 연관 가능 뿌리}]
 - resolved: [{뿌리명, 해소 계기}]
+
+[perspective_update]
+- lens: {사용된 렌즈}
+- interpretations:
+  - root: {뿌리명}
+    interpretation: {핵심 해석}
+    trend: {추이}
+    observation: {이번 세션 관찰}
