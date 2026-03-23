@@ -59,7 +59,7 @@ inner-compass/
 | 구성 요소 | 접두사 | 예시 |
 |---|---|---|
 | Agent (일반) | `inner-compass-` | `inner-compass-collector.md` |
-| Agent (렌즈) | `inner-compass-lens-` | `inner-compass-lens-socratic.md`, `inner-compass-lens-camus.md` |
+| Agent (렌즈) | `inner-compass-lens-` | `inner-compass-lens-socratic.md`, `inner-compass-lens-camus.md`, `inner-compass-lens-phenomenological.md` |
 | Skill | `inner-compass-` | `inner-compass-pattern-detect/` |
 | Command | `reflect-` | `reflect.md`, `reflect-quick.md` |
 

@@ -40,7 +40,7 @@ new_roots: []
 | `state` | 문자열 | 상태 명명 (「 」괄호 없이 값만 기록) |
 | `tags` | 문자열 배열 | 세션 주제 키워드 (Obsidian 태그 호환) |
 | `mode` | 열거형 | `standard` / `quick` / `deep` 중 하나 |
-| `lens` | 문자열 | 사용된 렌즈 식별자 (예: `socratic`, `camus`) |
+| `lens` | 문자열 | 사용된 렌즈 식별자 (예: `socratic`, `camus`, `phenomenological`) |
 | `thought_count` | 정수 | 수집된 생각 조각 수 |
 | `question_rounds` | 정수 | 렌즈 에이전트 질문 라운드 수 |
 | `matched_roots` | 문자열 배열 | 이번 세션에서 기존 뿌리와 매칭된 뿌리명 목록 |
@@ -235,7 +235,7 @@ roots.md 전체를 읽고 업데이트된 버전을 구성한 뒤 전체 파일�
 
 ## 5-1. perspectives/{lens}.md 구조
 
-렌즈별 해석을 저장하는 파일입니다. 세션 저장 경로의 `perspectives/` 디렉토리 내에 렌즈별로 하나씩 관리합니다 (예: `perspectives/socratic.md`, `perspectives/camus.md`).
+렌즈별 해석을 저장하는 파일입니다. 세션 저장 경로의 `perspectives/` 디렉토리 내에 렌즈별로 하나씩 관리합니다 (예: `perspectives/socratic.md`, `perspectives/camus.md`, `perspectives/phenomenological.md`).
 
 ```markdown
 ## {뿌리명}
