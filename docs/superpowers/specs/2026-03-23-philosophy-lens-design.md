@@ -91,7 +91,7 @@
 
 ```
 roots (id, name, status, surface_variants[])
-root_sessions (root_id, session_id)
+root_sessions (root_id, session_id, lens)
 interpretations (root_id, lens, core_interpretation, trend, notes)
 interpretation_history (interpretation_id, session_id, observation)
 ```
@@ -129,6 +129,25 @@ interpretation_history (interpretation_id, session_id, observation)
 ### crystallizer와의 관계
 
 crystallizer는 렌즈-중립을 유지한다. 어떤 렌즈로 탐색했든 결정화 포맷은 동일하되, frontmatter에 `lens` 필드를 기록한다.
+
+**변경 필요:**
+- crystallizer의 입력 설명에서 `inner-compass-socratic 에이전트와의 대화 기록` → `렌즈 에이전트와의 대화 기록`으로 일반화
+- `[roots_update]` 출력 구조 변경:
+  - 기존: `갱신할 추이` 포함 → roots.md에 기록
+  - 변경: `[roots_update]`는 중립 사실만 (matched/new/ambiguous/resolved, 표면 변형 추가, 등장 횟수 증가). 추이 제거
+  - 신규: `[perspective_update]` 블록 추가 — 이번 세션의 렌즈별 해석과 추이를 구조화하여 반환
+  - 커맨드는 `[roots_update]`로 roots.md를, `[perspective_update]`로 perspectives/{lens}.md를 각각 갱신
+
+`[perspective_update]` 형식:
+```
+[perspective_update]
+- lens: {사용된 렌즈}
+- interpretations:
+  - root: {뿌리명}
+    interpretation: {핵심 해석}
+    trend: {추이}
+    observation: {이번 세션 관찰}
+```
 
 ### 렌즈 추가 방법
 
@@ -193,7 +212,7 @@ lens_name: 카뮈 (부조리주의)
 /reflect-quick --lens camus 오늘 뭔가 허무하다
 ```
 
-`--lens` 없으면 기본값 `socratic`.
+`--lens` 없으면 기본값 `socratic`. 향후 `config.md`에 `default_lens` 필드를 추가하여 사용자가 기본 렌즈를 변경할 수 있도록 한다 (초기 범위 외).
 
 ### 세션 내 렌즈 전환
 
@@ -228,6 +247,12 @@ Phase 2.5 리뷰 분기에 선택지 추가:
 
 `--root` 시 retrospective 에이전트가 해당 뿌리의 모든 perspectives를 읽어 크로스 렌즈 비교 분석을 제공한다.
 
+**retrospective 에이전트 변경 필요:**
+- 입력에 `perspectives/` 디렉토리의 관련 파일들을 추가로 전달
+- `--lens` 모드: 해당 렌즈의 perspective만 로드하여 렌즈 관점에서 회고
+- `--root` 모드: 해당 뿌리에 대한 모든 perspectives를 로드하여 렌즈 간 비교 출력 생성
+- 비교 출력 형식: 뿌리별로 각 렌즈의 핵심 해석과 추이를 나란히 제시
+
 ### Cold Start (Bootstrap)
 
 처음 사용하는 렌즈를 지정하면:
@@ -242,6 +267,8 @@ Phase 2.5 리뷰 분기에 선택지 추가:
 ```
 
 Bootstrap 범위: 활성 뿌리만 (해소된 뿌리는 소급하지 않음).
+
+**Bootstrap 수행 주체:** 커맨드(reflect.md 등)의 Pre-phase에서 수행한다. 해당 렌즈 에이전트를 "bootstrap 모드"로 호출하여, roots.md + 최근 세션을 읽고 perspectives/{lens}.md를 생성하게 한다.
 
 ### 렌즈 설명 (사용자 안내)
 
@@ -296,8 +323,8 @@ lens: camus
 
 ### 모드별 차이
 
-- `/reflect`, `/reflect-deep`: 렌즈 전체 적용
-- `/reflect-quick`: 렌즈 적용, perspective 업데이트는 간략 (핵심 해석 한 줄)
+- `/reflect`, `/reflect-deep`: 렌즈 전체 적용, Phase 2.5에서 렌즈 전환 가능
+- `/reflect-quick`: 렌즈 적용, perspective 업데이트는 간략 (핵심 해석 한 줄). Phase 2.5 없으므로 세션 내 렌즈 전환 불가
 - `/reflect-review`: 렌즈 필터링 또는 크로스 렌즈 비교
 
 ---
@@ -332,7 +359,10 @@ lens: camus
 
 1. roots.md에서 "추이" 필드를 `perspectives/socratic.md`로 이동
 2. roots.md는 중립적 사실만 남김 (이름, 등장 횟수, 표면 변형, 상태, 관련 세션)
-3. 기존 세션 파일의 frontmatter에 `lens: socratic` 추가 (없으면 socratic으로 간주)
+3. 기존 세션 파일: frontmatter에 `lens` 필드가 없으면 `socratic`으로 간주 (retroactive 수정하지 않음)
 4. `agents/inner-compass-socratic.md` → `agents/inner-compass-lens-socratic.md` 리네이밍 + 렌즈 포맷 적용
-5. 커맨드 파일들(`commands/*.md`)에서 `inner-compass-socratic` → `inner-compass-lens-socratic` 참조 변경
-6. `perspectives/` 디렉토리 생성은 첫 세션 또는 `/reflect-setup` 시 자동
+5. `agents/inner-compass-crystallizer.md` 입력 설명 일반화 + `[perspective_update]` 출력 추가
+6. 커맨드 파일들(`commands/*.md`)에서 `inner-compass-socratic` → `inner-compass-lens-socratic` 참조 변경 + perspective 갱신 로직 추가
+7. `commands/reflect-setup.md`에 렌즈 설명 안내 + `perspectives/` 디렉토리 생성 추가
+8. `agents/inner-compass-retrospective.md`에 perspectives 입력 및 크로스 렌즈 비교 로직 추가
+9. `perspectives/` 디렉토리 생성은 `/reflect-setup` 또는 첫 세션의 Pre-phase에서 자동
