@@ -31,14 +31,22 @@ docs/specs/
 
 | 파일 | 소스 |
 |------|------|
-| spec-overview.md | init.md 섹션 1 (변경 거의 없음) |
+| index.md | 새로 작성. 아래 모든 파일의 목록 + 한 줄 설명 + 상대 링크 |
+| spec-overview.md | init.md 섹션 1 + 섹션 7 (설치/테스트) |
 | spec-architecture.md | init.md 섹션 2 + 실제 디렉토리 구조 대조 |
-| spec-commands.md | **실제 `commands/*.md` 파일** 기준. init.md는 참고만 |
-| spec-agents.md | **실제 `agents/*.md` 파일** 기준 |
-| spec-skills.md | **실제 `skills/*/SKILL.md` 파일** 기준 |
+| spec-commands.md | **실제 `commands/*.md` 파일 5개** (reflect, reflect-quick, reflect-deep, reflect-review, reflect-setup) 기준. init.md는 참고만 |
+| spec-agents.md | **실제 `agents/*.md` 파일 4개** (collector, socratic, crystallizer, retrospective) 기준 |
+| spec-skills.md | **실제 `skills/*/SKILL.md` 파일 3개** (pattern-detect, ontological-analysis, obsidian-export) 기준 |
 | spec-session-format.md | init.md 섹션 5.3 출력 구조 + 실제 crystallizer 구현 기준 |
 | spec-phase-flow.md | **실제 `commands/reflect.md`** 기준 (가장 drift가 큰 부분) |
 | spec-roadmap.md | init.md 섹션 9, 10 |
+
+## 구현 순서
+
+1. `docs/specs/` 디렉토리 생성 및 모든 spec 파일 작성
+2. `CLAUDE.md` 생성
+3. `docs/init.md` 삭제
+4. 단일 커밋으로 처리 (부분 완료 상태 방지)
 
 ## CLAUDE.md
 
@@ -54,4 +62,6 @@ docs/specs/
 ## 규칙
 
 - 작업 완료 시 관련 spec 문서가 변경 사항을 반영하는지 확인하고, 필요하면 최신화할 것
+- `docs/specs/`: 프로젝트 구현 스펙 (ground truth)
+- `docs/superpowers/specs/`: brainstorming 과정의 설계 문서 (작업 이력)
 ```
