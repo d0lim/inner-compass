@@ -3,6 +3,10 @@ Inner Compass 탐색 세션을 시작합니다.
 먼저 ~/.inner-compass/config.md를 읽어 세션 저장 경로를 확인합니다.
 설정 파일이 없으면 "/reflect-setup을 먼저 실행해주세요."라고 안내합니다.
 
+$ARGUMENTS에서 `--lens {name}` 파라미터를 파싱합니다.
+지정되지 않으면 기본값 `socratic`을 사용합니다.
+나머지 $ARGUMENTS는 기존과 동일하게 처리합니다.
+
 ## Pre-phase: Context 로드
 
 ### 마이그레이션 확인
@@ -17,6 +21,26 @@ Inner Compass 탐색 세션을 시작합니다.
 ### roots.md 로드
 세션 저장 경로의 roots.md를 읽습니다. 없으면 빈 상태로 진행합니다.
 파싱 불가능하면 빈 상태로 취급하고, 세션 파일에 경고를 기록합니다.
+
+### roots.md → perspectives 마이그레이션 확인
+roots.md에 "추이" 필드가 있고 perspectives/socratic.md가 없으면:
+- perspectives/ 디렉토리 생성
+- roots.md의 각 뿌리에서 추이 필드를 추출하여 perspectives/socratic.md 생성
+  - 뿌리명 → 섹션 헤더
+  - 추이 → 추이 필드
+  - 핵심 해석: "마이그레이션됨 — 다음 세션에서 갱신 예정"
+- roots.md에서 추이 필드를 제거하고 중립적 사실만 남김
+- 마이그레이션 후 roots.md를 다시 씀
+perspectives/socratic.md가 이미 있으면 마이그레이션 생략.
+
+### perspectives/{lens}.md 로드
+세션 저장 경로의 perspectives/{lens}.md를 읽습니다.
+파일이 없으면 cold start bootstrap을 실행합니다:
+- "렌즈를 처음 사용합니다. 기존 뿌리들에 대한 초기 해석을 생성합니다..." 안내
+- inner-compass-lens-{lens} 에이전트를 bootstrap 모드로 호출
+- roots.md의 활성 뿌리 + 최근 3개 세션을 전달
+- 반환된 결과를 perspectives/{lens}.md로 저장
+perspectives/ 디렉토리가 없으면 생성합니다.
 
 ### 최근 세션 로드
 세션 저장 경로에서 가장 최근 세션 파일 1개를 읽습니다.
@@ -36,7 +60,7 @@ $ARGUMENTS가 있다면 첫 번째 생각으로 사용합니다.
 사용자가 "됐어", "이 정도면", "다 적었어" 등의 신호를 주면 수집을 종료합니다.
 
 ## Phase 1: 탐색
-inner-compass-socratic 에이전트에 위임합니다. 다음 형식으로 전달합니다:
+inner-compass-lens-{lens} 에이전트에 위임합니다. 다음 형식으로 전달합니다:
 
 "다음은 수집된 생각 조각들입니다:
 1. ...
@@ -48,7 +72,10 @@ inner-compass-socratic 에이전트에 위임합니다. 다음 형식으로 전�
 [최근 세션 나침반]
 {최근 세션의 state + 나침반 섹션, 없으면 이 섹션 생략}
 
-이 생각들을 분석하고 소크라테스식 질문을 생성해주세요.
+[렌즈 해석 맥락]
+{perspectives/{lens}.md 중 관련 뿌리의 해석}
+
+이 생각들을 분석하고 질문을 생성해주세요.
 과거 맥락이 있다면 반복되는 뿌리나 변화에 대한 질문도 포함해주세요."
 
 에이전트가 반환하는 질문 중 사용자에게 2-3개를 제시합니다.
@@ -69,6 +96,11 @@ A: ...
 [과거 맥락]
 {roots.md 내용, 없으면 이 섹션 생략}
 
+렌즈: {lens}
+
+[렌즈 해석 맥락]
+{perspectives/{lens}.md 내용, 없으면 생략}
+
 [저장 설정]
 세션 저장 경로: {경로}
 모드: standard
@@ -88,7 +120,8 @@ crystallizer가 반환한 결정화 결과를 사용자에게 보여줍니다.
 
 (1) 괜찮아요, 저장해주세요
 (2) 수정하고 싶어요
-(3) 새로운 생각이 떠올랐어요"
+(3) 새로운 생각이 떠올랐어요
+(4) 다른 렌즈로 다시 탐색해볼래요"
 
 ### 사용자가 (1)을 선택한 경우
 Phase 3으로 진행합니다.
@@ -111,7 +144,7 @@ inner-compass-crystallizer 에이전트를 수정 모드로 호출합니다:
 
 ### 사용자가 (3)을 선택한 경우
 사용자에게 새로 떠오른 생각을 자유롭게 말하게 합니다.
-inner-compass-socratic 에이전트를 2차 탐색 모드로 호출합니다:
+inner-compass-lens-{lens} 에이전트를 2차 탐색 모드로 호출합니다:
 
 "2차 탐색 모드로 전환합니다.
 
@@ -137,6 +170,17 @@ inner-compass-socratic 에이전트를 2차 탐색 모드로 호출합니다:
 이때 crystallizer에 전달하는 대화 기록에 2차 탐색 내용도 포함합니다.
 결정화 후 다시 리뷰 분기(Phase 2.5)로 돌아갑니다.
 
+### 사용자가 (4)를 선택한 경우
+사용 가능한 렌즈 목록을 보여줍니다:
+agents/ 디렉토리에서 inner-compass-lens-*.md 파일을 찾아
+각 파일의 frontmatter에서 lens_name과 한 줄 설명을 추출하여 표시합니다.
+
+사용자가 렌즈를 선택하면:
+- 새 렌즈의 perspectives/{새 렌즈}.md를 로드 (없으면 bootstrap)
+- inner-compass-lens-{새 렌즈} 에이전트로 Phase 1부터 재시작
+- context: 원본 생각 + 현재 결정화 결과 + 새 렌즈의 perspective
+- 결정화 후 다시 리뷰 분기(Phase 2.5)로
+
 ## Phase 3: 저장 및 완료
 
 ### 세션 파일 저장
@@ -159,13 +203,19 @@ crystallizer가 반환한 `[roots_update]` 구조화된 분석을 기반으로 r
 
 갱신 방식 (crystallizer의 분석 결과를 그대로 적용):
 - roots.md 전체를 읽고 업데이트된 버전을 구성한 뒤 전체 파일을 다시 씁니다
-- matched 항목: 해당 뿌리에 표면 변형 추가, 추이 갱신, 등장 횟수 증가, 관련 세션 링크 추가
-- new 항목: 새 뿌리로 등록 (추이: "관찰 중")
+- matched 항목: 해당 뿌리에 표면 변형 추가, 등장 횟수 증가, 관련 세션 링크 추가
+- new 항목: 새 뿌리로 등록
 - ambiguous 항목: 세션 frontmatter에 `연관 가능: {뿌리명}` 표시
   - 2회 연속 세션에서 같은 연관 감지 시 → 매칭으로 승격
   - 3회 세션 동안 재등장하지 않으면 → 연관 표시 삭제
 - resolved 항목: 해소된 뿌리 섹션으로 이동, 해소 계기 기록
 - roots.md가 손상되었거나 파싱 불가능하면 빈 상태로 취급, 세션 파일에 경고 기록
+
+### perspectives/{lens}.md 갱신
+crystallizer가 반환한 [perspective_update] 구조를 기반으로 perspectives/{lens}.md를 갱신합니다.
+- 기존 뿌리: 핵심 해석과 추이를 업데이트, 세션별 변화에 이번 관찰 추가
+- 새 뿌리: 새 섹션으로 추가
+- perspectives/{lens}.md 전체를 읽고 업데이트된 버전을 다시 씁니다
 
 ### 완료 안내
 저장 완료를 사용자에게 알립니다.
