@@ -23,11 +23,12 @@ inner-compass/
 │   ├── reflect-review.md             # /reflect-review — 과거 회고
 │   └── reflect-setup.md              # /reflect-setup — 초기 설정
 │
-├── agents/                           # Subagents (4개)
-│   ├── inner-compass-collector.md    # 생각 수집
-│   ├── inner-compass-socratic.md     # 소크라테스식 질문
-│   ├── inner-compass-crystallizer.md # 상태 결정화
-│   └── inner-compass-retrospective.md # 과거 세션 회고
+├── agents/                               # Subagents (5개)
+│   ├── inner-compass-collector.md        # 생각 수집
+│   ├── inner-compass-lens-socratic.md    # 소크라테스 렌즈 (산파술)
+│   ├── inner-compass-lens-camus.md       # 카뮈 렌즈 (부조리주의)
+│   ├── inner-compass-crystallizer.md     # 상태 결정화 (렌즈 중립)
+│   └── inner-compass-retrospective.md    # 과거 세션 회고 + 크로스 렌즈 비교
 │
 ├── skills/                           # Auto-activating skills (3개)
 │   ├── inner-compass-pattern-detect/
@@ -57,12 +58,16 @@ inner-compass/
 
 | 구성 요소 | 접두사 | 예시 |
 |---|---|---|
-| Agent | `inner-compass-` | `inner-compass-collector.md` |
+| Agent (일반) | `inner-compass-` | `inner-compass-collector.md` |
+| Agent (렌즈) | `inner-compass-lens-` | `inner-compass-lens-socratic.md`, `inner-compass-lens-camus.md` |
 | Skill | `inner-compass-` | `inner-compass-pattern-detect/` |
 | Command | `reflect-` | `reflect.md`, `reflect-quick.md` |
 
 - **Agent / Skill**: 내부 시스템 구성 요소이므로 플러그인 이름 전체를 접두사로 사용
+- **렌즈 Agent**: `inner-compass-lens-{name}` 규칙을 따릅니다. frontmatter에 `lens_id`, `lens_name` 필드를 포함합니다. 새 렌즈 추가 시 이 규칙을 따라 파일을 생성합니다.
 - **Command**: 사용자가 직접 입력하므로 간결한 `reflect-` 접두사로 충분
+
+> **참고**: 기존 `inner-compass-socratic.md`는 `inner-compass-lens-socratic.md`로 이름이 변경되었습니다.
 
 ---
 
@@ -75,7 +80,10 @@ inner-compass/
 ├── config.md                         # 설정 파일 (vault 경로 등)
 ├── sessions/                         # 개별 세션 결과
 │   └── YYYY-MM-DD-HHmm.md            # 세션 파일 (타임스탬프 기반)
-├── roots.md                          # 뿌리 레지스트리 (패턴 누적)
+├── roots.md                          # 뿌리 레지스트리 (렌즈 중립, 추이 없음)
+├── perspectives/                     # 렌즈별 해석 저장
+│   ├── socratic.md                    # 소크라테스 렌즈 해석
+│   └── camus.md                       # 카뮈 렌즈 해석
 └── patterns.md                       # (deprecated — roots.md로 대체됨)
 ```
 
@@ -88,7 +96,10 @@ inner-compass/
 └── Inner-Compass/
     ├── sessions/
     │   └── YYYY-MM-DD-HHmm.md
-    └── roots.md
+    ├── roots.md
+    └── perspectives/
+        ├── socratic.md
+        └── camus.md
 ```
 
 ### 세션 파일명 규칙
@@ -142,7 +153,8 @@ Claude Code 플러그인 시스템에서 각 디렉토리와 파일의 역할은
 
 - `Task()` tool(Agent tool)로 위임할 때 사용하는 전문 에이전트
 - frontmatter에 `name`, `description`, `model`, `tools`를 정의한다
-- 각 에이전트는 단일 책임을 갖는다 (수집 / 질문 / 결정화 / 회고)
+- 렌즈 에이전트는 추가로 `lens_id`, `lens_name` 필드를 포함한다
+- 각 에이전트는 단일 책임을 갖는다 (수집 / 렌즈별 질문 / 결정화 / 회고)
 
 ### 5.3 `skills/` — Auto-activating Skill 정의
 
@@ -180,31 +192,35 @@ cd inner-compass && ./install.sh
 ### 표준 세션 (`/reflect`) 파이프라인
 
 ```
-사용자 입력
+사용자 입력 (--lens 파라미터 파싱)
+    ↓
+[Pre-phase: perspectives/{lens}.md 로드 / cold start bootstrap]
     ↓
 [inner-compass-collector]
   → 수집된 생각 목록 반환
     ↓
-[inner-compass-socratic]
-  prompt: 수집된 생각 전체
+[inner-compass-lens-{lens}]
+  prompt: 수집된 생각 + roots.md + perspectives/{lens}.md
   → 질문/답변 대화 기록 반환
     ↓
 [inner-compass-crystallizer]
-  prompt: 원본 생각 + 전체 대화 기록
-  → 결정화 결과 + 뿌리 매칭 분석 반환 (파일 저장 안 함)
+  prompt: 원본 생각 + 전체 대화 기록 + 렌즈명 + perspectives/{lens}.md
+  → 결정화 결과 + [roots_update] + [perspective_update] 반환 (파일 저장 안 함)
     ↓
 [리뷰 분기 — command가 직접 처리]
   (1) 괜찮아요 → 저장 단계로
   (2) 수정 → crystallizer 수정 모드로 재위임
-  (3) 새 생각 → socratic 2차 탐색 후 crystallizer 재실행
+  (3) 새 생각 → lens-{lens} 2차 탐색 후 crystallizer 재실행
+  (4) 다른 렌즈 → lens-{새렌즈}로 Phase 1부터 재시작
     ↓
 [저장 — command가 직접 처리]
-  세션 파일 저장 + roots.md 갱신
+  세션 파일 저장 + roots.md 갱신 + perspectives/{lens}.md 갱신
 ```
 
 ### 핵심 원칙
 
-- **파일 저장 책임**: crystallizer, socratic 등 에이전트는 파일을 저장하지 않는다. **저장은 최종 단계에서 command가 직접 수행한다.**
-- **리뷰 루프**: 결정화 결과에 대한 리뷰 분기(수정/재탐색/승인)는 command 레벨에서 관리하며, 사용자가 만족할 때까지 반복할 수 있다 (횟수 제한 없음).
+- **파일 저장 책임**: crystallizer, 렌즈 에이전트 등은 파일을 저장하지 않는다. **저장은 최종 단계에서 command가 직접 수행한다.**
+- **렌즈 중립성**: crystallizer는 렌즈 중립적으로 동작한다. 어떤 렌즈 에이전트의 결과든 받아서 결정화한다. roots.md도 렌즈 중립적이며, 추이는 perspectives/{lens}.md에서 렌즈별로 관리한다.
+- **리뷰 루프**: 결정화 결과에 대한 리뷰 분기(수정/재탐색/렌즈 전환/승인)는 command 레벨에서 관리하며, 사용자가 만족할 때까지 반복할 수 있다 (횟수 제한 없음).
 - **데이터 흐름**: 각 에이전트의 출력은 다음 에이전트의 `prompt`에 텍스트로 포함된다. 에이전트 간 공유 상태는 없다.
-- **단방향**: collector → socratic → crystallizer 순서로 진행되며, 역방향 호출은 없다.
+- **단방향**: collector → lens-{lens} → crystallizer 순서로 진행되며, 역방향 호출은 없다 (렌즈 전환 시에만 Phase 1로 재진입).

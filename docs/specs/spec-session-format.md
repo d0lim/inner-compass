@@ -26,6 +26,7 @@ date: YYYY-MM-DDTHH:MM
 state: "(상태 명명)"
 tags: [주제1, 주제2, 주제3]
 mode: standard | quick | deep
+lens: {렌즈명}
 thought_count: N
 question_rounds: N
 matched_roots: []
@@ -39,8 +40,9 @@ new_roots: []
 | `state` | 문자열 | 상태 명명 (「 」괄호 없이 값만 기록) |
 | `tags` | 문자열 배열 | 세션 주제 키워드 (Obsidian 태그 호환) |
 | `mode` | 열거형 | `standard` / `quick` / `deep` 중 하나 |
+| `lens` | 문자열 | 사용된 렌즈 식별자 (예: `socratic`, `camus`) |
 | `thought_count` | 정수 | 수집된 생각 조각 수 |
-| `question_rounds` | 정수 | 소크라테스 에이전트 질문 라운드 수 |
+| `question_rounds` | 정수 | 렌즈 에이전트 질문 라운드 수 |
 | `matched_roots` | 문자열 배열 | 이번 세션에서 기존 뿌리와 매칭된 뿌리명 목록 |
 | `new_roots` | 문자열 배열 | 이번 세션에서 새로 감지된 뿌리명 목록 |
 
@@ -65,6 +67,7 @@ date: YYYY-MM-DDTHH:MM
 state: "(상태 명명)"
 tags: [주제1, 주제2, 주제3]
 mode: standard | quick | deep
+lens: {렌즈명}
 thought_count: N
 question_rounds: N
 matched_roots: []
@@ -165,14 +168,13 @@ revision_history:
 
 ## 4. roots.md 구조
 
-뿌리 레지스트리. 세션 저장 경로에 `roots.md` 파일 하나로 관리합니다.
+뿌리 레지스트리. 세션 저장 경로에 `roots.md` 파일 하나로 관리합니다. roots.md는 **렌즈 중립적**이며, 추이(trend)는 포함하지 않습니다. 추이는 렌즈별 `perspectives/{lens}.md`에서 관리합니다.
 
 ```markdown
 # 뿌리 레지스트리
 
 ## {뿌리명}
 - **표면 변형**: [{변형1}, {변형2}, ...]
-- **추이**: 관찰 중 | 개선 | 유지 | 악화
 - **등장 횟수**: N
 - **관련 세션**: [[YYYY-MM-DD-HHmm]], [[YYYY-MM-DD-HHmm-deep]], ...
 
@@ -193,36 +195,26 @@ revision_history:
 |------|------|
 | **뿌리명** | 뿌리를 나타내는 이름. crystallizer가 이번 세션 분석에서 도출. |
 | **표면 변형** | 각 세션에서 이 뿌리가 드러난 구체적 생각 표현들의 목록. |
-| **추이** | 시간에 따른 뿌리 상태 변화 방향. `관찰 중` / `개선` / `유지` / `악화`. |
 | **등장 횟수** | 이 뿌리가 감지된 세션 수. |
 | **관련 세션** | Obsidian wikilink 형식의 세션 파일 링크 목록. |
 
-**추이 판단 기준:**
-
-| 추이 | 조건 |
-|------|------|
-| 악화 | 표면이 더 강렬해짐 |
-| 유지 | 비슷한 강도로 반복 |
-| 개선 | 표면이 약해지거나 구체적 해결 시도 언급 |
-| 관찰 중 | 1회만 등장, 판단 근거 부족 |
+> **참고**: 이전 버전의 roots.md에는 `추이` 필드가 포함되어 있었으나, 멀티 렌즈 시스템 도입으로 추이는 perspectives/{lens}.md로 이전되었습니다. 마이그레이션은 Pre-phase에서 자동 수행됩니다.
 
 ---
 
 ## 5. roots.md 갱신 방식
 
-crystallizer가 반환하는 `[roots_update]` 분석 결과를 기반으로, 커맨드(reflect.md)가 roots.md를 기계적으로 갱신합니다. 갱신은 최종 수락된 결과 기준으로 한 번만 수행합니다.
+crystallizer가 반환하는 `[roots_update]` 분석 결과를 기반으로, 커맨드(reflect.md)가 roots.md를 기계적으로 갱신합니다. 갱신은 최종 수락된 결과 기준으로 한 번만 수행합니다. roots.md에는 렌즈 중립적 사실만 기록합니다.
 
 roots.md 전체를 읽고 업데이트된 버전을 구성한 뒤 전체 파일을 다시 씁니다.
 
 ### matched 처리
 - 해당 뿌리 섹션에 이번 세션의 표면 변형을 추가합니다.
-- 추이를 갱신합니다.
 - 등장 횟수를 1 증가합니다.
 - 관련 세션 링크를 추가합니다.
 
 ### new 처리
 - 새 뿌리 섹션을 생성합니다.
-- 추이는 `관찰 중`으로 초기화합니다.
 - 표면 변형, 등장 횟수(1), 관련 세션을 기록합니다.
 
 ### ambiguous 처리
@@ -238,6 +230,84 @@ roots.md 전체를 읽고 업데이트된 버전을 구성한 뒤 전체 파일�
 ### 오류 처리
 - roots.md가 손상되었거나 파싱 불가능하면 빈 상태로 취급합니다.
 - 세션 파일 본문에 경고를 기록합니다.
+
+---
+
+## 5-1. perspectives/{lens}.md 구조
+
+렌즈별 해석을 저장하는 파일입니다. 세션 저장 경로의 `perspectives/` 디렉토리 내에 렌즈별로 하나씩 관리합니다 (예: `perspectives/socratic.md`, `perspectives/camus.md`).
+
+```markdown
+## {뿌리명}
+- **핵심 해석**: {렌즈 관점에서의 해석}
+- **추이**: 관찰 중 | 개선 | 유지 | 악화
+- **세션별 변화**:
+  - YYYY-MM-DD: {이번 세션에서의 관찰}
+  - YYYY-MM-DD: {이전 세션에서의 관찰}
+
+## {뿌리명2}
+...
+```
+
+| 필드 | 설명 |
+|------|------|
+| **뿌리명** | roots.md의 뿌리명과 동일. |
+| **핵심 해석** | 해당 렌즈의 철학적 관점에서 본 뿌리의 해석. |
+| **추이** | 이 렌즈 관점에서의 시간에 따른 변화 방향. `관찰 중` / `개선` / `유지` / `악화`. |
+| **세션별 변화** | 각 세션에서의 관찰 기록. 날짜순으로 append. |
+
+**추이 판단 기준 (렌즈별):**
+
+| 추이 | 조건 |
+|------|------|
+| 악화 | 표면이 더 강렬해짐 |
+| 유지 | 비슷한 강도로 반복 |
+| 개선 | 표면이 약해지거나 구체적 해결 시도 언급 |
+| 관찰 중 | 1회만 등장, 판단 근거 부족 |
+
+---
+
+## 5-2. perspectives/{lens}.md 갱신 방식
+
+crystallizer가 반환하는 `[perspective_update]` 분석 결과를 기반으로, 커맨드가 perspectives/{lens}.md를 갱신합니다.
+
+```
+[perspective_update]
+- lens: {사용된 렌즈}
+- interpretations:
+  - root: {뿌리명}
+    interpretation: {핵심 해석}
+    trend: {추이}
+    observation: {이번 세션 관찰}
+```
+
+### 기존 뿌리
+- 핵심 해석과 추이를 업데이트합니다.
+- 세션별 변화에 이번 관찰을 추가합니다.
+
+### 새 뿌리
+- 새 섹션으로 추가합니다.
+
+perspectives/{lens}.md 전체를 읽고 업데이트된 버전을 다시 씁니다.
+
+---
+
+## 5-3. roots.md → perspectives 마이그레이션
+
+이전 버전의 roots.md에 포함되어 있던 `추이` 필드를 perspectives/socratic.md로 마이그레이션합니다.
+
+| 조건 | 처리 |
+|------|------|
+| roots.md에 "추이" 필드 있음 + perspectives/socratic.md 없음 | 마이그레이션 실행 |
+| perspectives/socratic.md 이미 있음 | 마이그레이션 생략 |
+
+**마이그레이션 절차:**
+1. perspectives/ 디렉토리를 생성합니다.
+2. roots.md의 각 뿌리에서 추이 필드를 추출하여 perspectives/socratic.md를 생성합니다.
+   - 뿌리명 → 섹션 헤더
+   - 추이 → 추이 필드
+   - 핵심 해석: "마이그레이션됨 — 다음 세션에서 갱신 예정"
+3. roots.md에서 추이 필드를 제거하고 중립적 사실만 남깁니다.
 
 ---
 
