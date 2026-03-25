@@ -1,8 +1,8 @@
 # Inner Compass
 
-> 산발적인 내면의 생각을 체계적으로 정제하여 자기 상태를 진단하는 Claude Code 플러그인
+> 흩어진 생각을 차분히 정리해 지금 내 상태를 짚어보는 Claude Code 플러그인
 
-터미널에서 코딩하다가, `/reflect` 한 번이면 내면 탐색이 시작됩니다.
+터미널에서 코딩하다가 문득 생각이 복잡해질 때, `/reflect` 한 번이면 탐색을 시작할 수 있습니다.
 
 ## How it works
 
@@ -10,10 +10,13 @@
 /reflect "요즘 이것저것 너무 많이 벌려놓은 것 같다"
 ```
 
+기본 렌즈는 `socratic`입니다. 필요하면 `/reflect --lens camus`처럼 다른 렌즈로 다시 들여다볼 수도 있습니다.
+
 1. **수집** — 머릿속 생각을 자유롭게 쏟아냅니다
-2. **탐색** — 소크라테스식 질문으로 본질에 접근합니다
-3. **결정화** — 내면 상태를 하나의 진단으로 응축합니다
-4. **저장** — 마크다운으로 기록됩니다 (Obsidian 연동 가능)
+2. **탐색** — 선택한 렌즈가 질문을 이어가며 생각의 결을 따라갑니다
+3. **결정화** — 흩어져 있던 상태를 하나의 진단으로 모읍니다
+4. **리뷰** — 저장하기 전에 수정하거나, 새 생각을 더하거나, 렌즈를 바꿔 다시 볼 수 있습니다
+5. **저장** — 마크다운으로 기록됩니다 (Obsidian 연동 가능)
 
 ## Install
 
@@ -39,23 +42,39 @@ cd inner-compass
 ### 설치 후
 
 ```
-/reflect-setup    # Obsidian vault 경로 설정 (선택)
-/reflect          # 탐색 세션 시작
+/reflect-setup                # 최초 1회 필수: 저장 경로 설정
+/reflect                      # 기본 소크라테스 렌즈로 시작
+/reflect --lens camus         # 다른 렌즈로 다시 탐색
 ```
+
+`/reflect-setup`은 처음 한 번은 꼭 실행해야 합니다. Obsidian vault를 쓰지 않더라도 기본 저장 경로를 만들고 `config.md`를 준비해야 이후 커맨드가 정상적으로 동작합니다.
 
 ## Commands
 
 | Command | Description |
 |---------|-------------|
-| `/reflect` | 표준 세션 — 수집 → 질문 2-3라운드 → 진단 |
-| `/reflect-quick` | 간이 모드 — 질문 1회, 핵심만 |
-| `/reflect-deep` | 심층 모드 — 질문 5회+, 가치관 충돌 맵 포함 |
-| `/reflect-review` | 과거 세션 회고 — 장기 패턴 분석 |
-| `/reflect-setup` | 초기 설정 — Obsidian vault 연동 등 |
+| `/reflect` | 표준 세션 — 수집 → 질문 2-3라운드 → 결정화 → 리뷰 → 저장 |
+| `/reflect-quick` | 간이 모드 — 질문 1회, 핵심만 빠르게 진단 |
+| `/reflect-deep` | 심층 모드 — 질문 5회+, 시간축 분석·가치관 충돌 맵 포함 |
+| `/reflect-review` | 과거 세션 회고 — 렌즈별 / 뿌리별 장기 패턴 분석 |
+| `/reflect-setup` | 초기 설정 — 저장 경로 / Obsidian vault / perspectives 디렉토리 준비 |
 
 ## Output
 
-세션 결과는 `~/.inner-compass/sessions/`에 저장됩니다 (Obsidian vault 설정 시 vault 내 저장).
+기본 저장 경로는 `~/.inner-compass/`입니다. `/reflect-setup`을 마치면 `config.md`, 세션 파일, `roots.md`, 렌즈별 `perspectives/`가 이 아래에서 함께 관리됩니다.
+
+- 기본 세션 파일: `~/.inner-compass/sessions/`
+- Obsidian 연동 시: `{vault}/Inner-Compass/` 아래에 `sessions/`, `roots.md`, `perspectives/` 저장
+- 렌즈별 해석: `perspectives/{lens}.md`
+- 뿌리 레지스트리: `roots.md`
+
+저장되는 파일 이름은 모드에 따라 달라집니다.
+
+- `/reflect` → `YYYY-MM-DD-HHmm.md`
+- `/reflect-quick` → `YYYY-MM-DD-HHmm-quick.md`
+- `/reflect-deep` → `YYYY-MM-DD-HHmm-deep.md`
+
+리뷰 단계에서 수정이 한 번이라도 일어나면 저장된 세션 frontmatter에 revision metadata가 추가됩니다.
 
 ```markdown
 # 「 확장 전 응축기 」
@@ -74,12 +93,15 @@ cd inner-compass
 ## Architecture
 
 ```
-/reflect
-  ├─ collector (sonnet)      # 생각 수집
-  ├─ socratic (opus)         # 소크라테스식 질문
-  ├─ crystallizer (opus)     # 상태 결정화 + 저장
-  └─ retrospective (sonnet)  # 과거 회고 (/reflect-review)
+/reflect command
+  ├─ inner-compass-collector         # 생각 수집
+  ├─ inner-compass-lens-{lens}       # 렌즈별 탐색 (socratic, camus, ...)
+  ├─ inner-compass-crystallizer      # 상태 결정화
+  ├─ review branch in command        # 수정 / 새 생각 / 렌즈 전환 / 저장
+  └─ inner-compass-retrospective     # 과거 회고 (/reflect-review)
 ```
+
+전체 흐름과 저장은 **command가 맡고**, 각 에이전트는 수집·탐색·결정화·회고를 나눠서 담당합니다. 결정화 에이전트는 결과만 돌려주고 파일은 직접 저장하지 않습니다. 최종 저장과 `roots.md`, `perspectives/{lens}.md` 갱신은 command 단계에서 처리됩니다.
 
 ## Uninstall
 
@@ -104,7 +126,7 @@ rm -rf ~/.inner-compass/
 - [Claude Code](https://docs.anthropic.com/en/docs/claude-code) CLI
 - Claude Max subscription
 
-**Optional:** [Obsidian](https://obsidian.md/) — 세션 결과를 vault에 직접 저장하여 그래프 뷰, 백링크, 검색 등을 활용할 수 있습니다. `/reflect-setup`에서 vault 경로를 설정하면 됩니다.
+**Optional:** [Obsidian](https://obsidian.md/) — 세션 결과를 vault에 바로 저장해 그래프 뷰, 백링크, 검색을 함께 활용할 수 있습니다. `/reflect-setup`에서 vault 경로를 잡아주면 됩니다.
 
 ## Inspired by
 
